@@ -5,9 +5,10 @@ export default function Header() {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
+    // NO OPACITY RN BUT CAN BE INVISIBLE
       <header
-        className={`px-4 lg:px-6 h-14 flex items-center transition-opacity duration-300 ${
-          isHovered ? "opacity-100" : "opacity-0"
+        className={`fixed top-0 left-0 w-full bg-black z-10 px-4 lg:px-6 h-14 flex items-center transition-opacity duration-300 ${
+          isHovered ? "opacity-100" : "opacity-100" 
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
