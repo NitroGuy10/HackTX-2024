@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="canvas" width="1000" height="1000" style="border: 2px solid black;"></canvas>
+
+    <script>
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+        let player = window.location.pathname.substring(1);
+        let segments = {
+            x: [0,0,0,0,0],
+            y: [0,0,0,0,0]
+        };
+        let otherSegments = {
+            x: [0,0,0,0,0],
+            y: [0,0,0,0,0]
+        };
+        let aiSegments = {
+            x: [0,0,0,0,0],
+            y: [0,0,0,0,0]
+        };
+        let dead = false;
+        if (player === "player2")
+        {
+            for (let i = 0; i < segments.y.length; i++) {
+                segments.y[i] = canvas.height;
+            }
+        }
+        
+        
+        
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let mouseMove = false;
+        let mouseDown = false;
+
+        let speedupCounter = 0;
+
+        window.addEventListener("mousemove", function(event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            mouseMove = true;
+        });
+
+        window.addEventListener("mousedown", function(event) {
+            mouseDown = true;
+        });
+
+        window.addEventListener("mouseup", function(event) {
+            mouseDown = false;
+        });
+
+        // fetch mouse position every 500ms
+        setInterval(async function() {
+            fetch("/get-segments?player=" + player)
+                .then(response => response.json())
+                .then(data => {
+                    otherSegments.x = data.player.x;
+                    otherSegments.y = data.player.y;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < segments.x.length; i++) {
+                        ctx.fillStyle = "blue";
+                        ctx.fillRect(segments.x[i], segments.y[i], 10, 10);
+                    }
+                    for (let i = 0; i < otherSegments.x.length; i++) {
+                        ctx.fillStyle = "red";
+                        ctx.fillRect(otherSegments.x[i], otherSegments.y[i], 10, 10);
+                    }
+                    for (let i = 0; i < aiSegments.x.length; i++) {
+                        ctx.fillStyle = "green";
+                        ctx.fillRect(aiSegments.x[i], aiSegments.y[i], 10, 10);
+                    }
+                    
+                    if (dead) {
+                        ctx.font = "200px Arial";
+                        ctx.fillText("You died!", 10, 500);
+                    }
+                });
+        }, 50);
+
+        let lastUnitX = 0;
+        let lastUnitY = 0;
+
+        setInterval(function() {
+            if (dead) {
+                return;
+            }
+
+            let distance = 25;
+            if (mouseDown) {
+                distance = 40;
+                speedupCounter++;
+            }
+
+            if (speedupCounter > 3) {
+                speedupCounter = 0;
+                segments.x.pop();
+                segments.y.pop();
+
+
+            }
+
+            if (segments.x.length > 0)
+            {
+                // Calculate the direction vector from (x1, y1) to (x2, y2)
+                const dx = mouseX - (segments.x[0] || 0);
+                const dy = mouseY - (segments.y[0] || (player === "player1" ? 0 : canvas.height));
+
+                // Calculate the length of the vector (distance between points)
+                const length = Math.sqrt(dx * dx + dy * dy);
+
+                // Normalize the direction vector to have a length of 1
+                let unitX = dx / length;
+                let unitY = dy / length;
+                if (!mouseMove) {
+                    unitX = lastUnitX;
+                    unitY = lastUnitY;
+                }
+                lastUnitX = unitX;
+                lastUnitY = unitY;
+
+                // Scale the direction vector to the desired distance
+                const newX = (segments.x[0] || 0) + unitX * distance;
+                const newY = (segments.y[0] || (player === "player1" ? 0 : canvas.height)) + unitY * distance;
+
+                segments.x.unshift(newX);
+                segments.x.pop();
+                segments.y.unshift(newY);
+                segments.y.pop();
+
+            }
+
+
+            
+            mouseMove = false;
+
+            //console.log(segments.x[0], segments.y[0]);
+            
+            fetch("/report-segments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    player: player,
+                    x: segments.x,
+                    y: segments.y
+                })
+            });
+            
+            // Check if player is dead
+            const boundary = 30;
+            if (!dead)
+            {
+                
+                for (let i = 0; i < otherSegments.x.length; i++) {
+                    if (segments.x.length == 0 || ((otherSegments.x[i] - boundary < segments.x[0] && segments.x[0] < otherSegments.x[i] + boundary) &&
+                        (otherSegments.y[i] - boundary < segments.y[0] && segments.y[0] < otherSegments.y[i] + boundary))
+                        || segments.x[0] < 0 || segments.x[0] > canvas.width || segments.y[0] < 0 || segments.y[0] > canvas.height) {
+                        dead = true;
+                        console.log("You died!");
+                        fetch("/report-death?player=" + player);
+
+                        // Reset player
+                        segments = {
+                            x: [0,0,0,0,0],
+                            y: [0,0,0,0,0],
+                        };
+                        if (player === "player2")
+                        {
+                            for (let i = 0; i < segments.y.length; i++) {
+                                segments.y[i] = canvas.height;
+                            }
+                        }
+                        fetch("/report-segments", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                player: player,
+                                x: segments.x,
+                                y: segments.y
+                            })
+                        });
+                        setTimeout(function() {
+                            dead = false;
+                        }, 3000);
+                        break;
+                    }
+                }
+            }
+            
+        }, 100);
+    </script>
+    
+</body>
+</html>
