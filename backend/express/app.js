@@ -6,7 +6,7 @@ const app = express();
 app.disable('etag');
 const PORT = 4000;
 
-const canvasSize = 1000;
+const canvasSize = 600;
 
 let game = {
   player1: {
@@ -31,8 +31,8 @@ let game = {
   },
 
   food: {
-    "x": [600, 700, 800, 900],
-    "y": [600, 700, 800, 900]
+    "x": [300, 350, 400, 450, 500],
+    "y": [300, 350, 400, 450, 500]
   }
 }
 
@@ -90,10 +90,10 @@ app.get('/get-segments', (req, res) => {
 app.post("/eat-food", (req, res) => {
   const data = req.body;
   const foodIdx = data.foodIdx;
-  game.food.x = game.food.x.filter((_, idx) => idx !== foodIdx);
-  game.food.y = game.food.y.filter((_, idx) => idx !== foodIdx);
-  game.food.x.push(Math.floor(Math.random() * canvasSize));
-  game.food.y.push(Math.floor(Math.random() * canvasSize));
+  game.food.x.splice(foodIdx, 1);
+  game.food.y.splice(foodIdx, 1);
+  game.food.x.push(Math.floor(Math.random() * (canvasSize - 40) + 20));
+  game.food.y.push(Math.floor(Math.random() * (canvasSize - 40) + 20));
 
   console.log("Food eaten");
   res.send("OK");

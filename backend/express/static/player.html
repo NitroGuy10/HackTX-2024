@@ -6,7 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    <canvas id="canvas" width="1000" height="1000" style="border: 2px solid black;"></canvas>
+    <canvas id="canvas" width="600" height="600" style="border: 2px solid black;"></canvas>
 
     <script>
         let canvas = document.getElementById("canvas");
@@ -47,6 +47,7 @@
         let mouseDown = false;
 
         let speedupCounter = 0;
+        let eatCooldown = 0;
 
         window.addEventListener("mousemove", function(event) {
             mouseX = event.clientX;
@@ -112,6 +113,7 @@
                 distance = 40;
                 speedupCounter++;
             }
+            eatCooldown = Math.max(0, eatCooldown - 1);
 
             if (speedupCounter > 3) {
                 speedupCounter = 0;
@@ -173,26 +175,31 @@
             const boundary = 30;
             if (!dead)
             {
-                for (let i = 0; i < food.x.length; i++) {
-                    if ((food.x[i] - boundary < segments.x[0] && segments.x[0] < food.x[i] + boundary) &&
-                        (food.y[i] - boundary < segments.y[0] && segments.y[0] < food.y[i] + boundary)) {
-                        food.x.splice(i, 1);
-                        food.y.splice(i, 1);
-                        segments.x.push(segments.x[segments.x.length - 1]);
-                        segments.y.push(segments.y[segments.y.length - 1]);
-
-                        fetch("/eat-food", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                foodIdx: i
-                            })
-                        });
-                        break;
+                if (eatCooldown == 0)
+                {
+                    for (let i = 0; i < food.x.length; i++) {
+                        if ((food.x[i] - boundary < segments.x[0] && segments.x[0] < food.x[i] + boundary) &&
+                            (food.y[i] - boundary < segments.y[0] && segments.y[0] < food.y[i] + boundary)) {
+                            food.x.splice(i, 1);
+                            food.y.splice(i, 1);
+                            segments.x.push(segments.x[segments.x.length - 1]);
+                            segments.y.push(segments.y[segments.y.length - 1]);
+    
+                            eatCooldown = 3;
+                            fetch("/eat-food", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    foodIdx: i
+                                })
+                            });
+                            break;
+                        }
                     }
                 }
+                
                 
                 for (let i = 0; i < otherSegments.x.length; i++) {
                     if (segments.x.length == 0 || ((otherSegments.x[i] - boundary < segments.x[0] && segments.x[0] < otherSegments.x[i] + boundary) &&
