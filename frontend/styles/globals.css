@@ -74,3 +74,74 @@
   font-weight: normal;
   font-style: normal;
 }
+
+/* src/components/WeightGrid.css */
+
+.weight-grid-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.weight-grid-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.error-message {
+  color: #f44336;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.loading-message {
+  color: #1976d2;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(10, 50px); /* Must match GRID_COLS */
+  grid-gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.circle {
+  background-color: #000;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.circle:hover {
+  transform: scale(1.2);
+}
+
+.update-button {
+  display: block;
+  margin: 30px auto 0;
+  padding: 15px 30px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.update-button:hover:not(:disabled) {
+  background-color: #1565c0;
+  transform: scale(1.05);
+}
+
+.update-button:disabled {
+  background-color: #90caf9;
+  cursor: not-allowed;
+}

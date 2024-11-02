@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import Header from "../components/header";
 import { useState } from "react";
 import SquareGrid from "@/components/SquareGrid";
+import WeightGrid from "@/components/WeightGrid";
 
 export default function Component() {
   const [showGame, setShowGame] = useState(false);
@@ -41,6 +42,7 @@ export default function Component() {
       <footer className="fixed bottom-0 w-full py-1 bg-black">
         <p className="text-xs text-white font-minimal text-center">made by: for hacktx 2024 :)</p>
       </footer>
+      <WeightGrid />
     </div>
   )
 }
