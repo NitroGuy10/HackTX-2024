@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <script>
+        let x = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        let y = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+        // report mouse position every 500ms
+        window.addEventListener("mousemove", function(event) {
+            x.unshift(event.clientX);
+            x.pop();
+            y.unshift(event.clientY);
+            y.pop();
+        });
+
+        setInterval(function() {
+            fetch("/report-segments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    player: "player2",
+                    x: x,
+                    y: y
+                })
+            });
+        }, 50);
+        
+    </script>
+</body>
+</html>
