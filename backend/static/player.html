@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="canvas" width="1000" height="1000" style="border: 2px solid black;"></canvas>
+
+    <script>
+        let player = window.location.pathname.substring(1);
+        let segments = {
+            x: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            y: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        };
+        let otherSegments = {
+            x: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            y: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        };
+        let aiSegments = {
+            x: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            y: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        };
+        
+        
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+        // fetch mouse position every 500ms
+        setInterval(async function() {
+            fetch("/get-segments")
+                .then(response => response.json())
+                .then(data => {
+                    x = data.x;
+                    y = data.y;
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < 20; i++) {
+                        ctx.fillRect(segments.x[i], segments.y[i], 10, 10);
+                        ctx.fillRect(otherSegments.x[i], otherSegments.y[i], 10, 10);
+                        ctx.fillRect(aiSegments.x[i], aiSegments.y[i], 10, 10);
+                    }
+                });
+        }, 1000);
+    </script>
+    
+</body>
+</html>

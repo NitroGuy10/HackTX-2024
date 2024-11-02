@@ -10,27 +10,40 @@ def host():
 
 @app.route("/player1")
 def player1():
-    # serve player1.html
-    return app.send_static_file('player1.html')
+    # serve player.html
+    return app.send_static_file('player.html')
 
-@app.route("/report-position", methods=['POST'])
-def report_position():
+@app.route("/player2")
+def player2():
+    # serve player.html
+    return app.send_static_file('player.html')
+
+@app.route("/report-segments", methods=['POST'])
+def report_segments():
     # get the position from the body json
     data = request.json
-    game.x = data['x']
-    game.y = data['y']
+    if data["player"] == "player1":
+        game.player1["segments"]["x"] = data["x"]
+        game.player1["segments"]["y"] = data["y"]
+    elif data["player"] == "player2":
+        game.player2["segments"]["x"] = data["x"]
+        game.player2["segments"]["y"] = data["y"]
 
-    return {
-        'message': 'Position updated'
-    }
+    return "OK"
 
-@app.route("/get-position")
+@app.route("/get-segments")
 def get_position():
-    # return the position as json
-    return {
-        'x': game.x,
-        'y': game.y
+    # don't return the position of the current player
+    return_dict = {
+        "ai": game.ai["segments"]
     }
+    if request.args.get("player") == "player1":
+        return_dict["player"] = game.player2["segments"]
+    elif request.args.get("player") == "player2":
+        return_dict["player"] = game.player1["segments"]
+    
+    print(return_dict)
+    return return_dict
 
 @app.route("/")
 def hello_world():
