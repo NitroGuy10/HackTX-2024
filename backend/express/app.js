@@ -9,23 +9,28 @@ const PORT = 4000;
 let game = {
   player1: {
     "segments": {
-        "x": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "y": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        "x": [0, 0, 0, 0, 0],
+        "y": [0, 0, 0, 0, 0]
     }
   },
   
   player2: {
     "segments": {
-        "x": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "y": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        "x": [0, 0, 0, 0, 0],
+        "y": [100, 100, 100, 100, 100]
     }
   },
   
   ai: {
     "segments": {
-        "x": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "y": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        "x": [0, 0, 0, 0, 0],
+        "y": [0, 0, 0, 0, 0]
     }
+  },
+
+  food: {
+    "x": [600, 600, 600, 600, 600],
+    "y": [600, 600, 600, 600, 600]
   }
 }
 
@@ -79,11 +84,17 @@ app.get('/get-segments', (req, res) => {
   res.json(returnData);
 });
 
-// Root route
+app.get("/report-death", (req, res) => {
+  const player = req.query.player;
+  console.log(player + " died");
+  res.send("OK");
+});
+
 app.get('/', (req, res) => {
   res.send('<p>Hello, World!</p>');
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+let server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
+server.keepAliveTimeout = 30000; 
