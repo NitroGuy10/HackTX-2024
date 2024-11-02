@@ -25,6 +25,11 @@
             x: [0,0,0,0,0],
             y: [0,0,0,0,0]
         };
+        let food = {
+            x: [],
+            y: []
+        };
+
         let dead = false;
         if (player === "player2")
         {
@@ -64,6 +69,10 @@
                 .then(data => {
                     otherSegments.x = data.player.x;
                     otherSegments.y = data.player.y;
+                    aiSegments.x = data.ai.x;
+                    aiSegments.y = data.ai.y;
+                    food.x = data.food.x;
+                    food.y = data.food.y;
 
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     for (let i = 0; i < segments.x.length; i++) {
@@ -77,6 +86,10 @@
                     for (let i = 0; i < aiSegments.x.length; i++) {
                         ctx.fillStyle = "green";
                         ctx.fillRect(aiSegments.x[i], aiSegments.y[i], 10, 10);
+                    }
+                    for (let i = 0; i < food.x.length; i++) {
+                        ctx.fillStyle = "orange";
+                        ctx.fillRect(food.x[i], food.y[i], 15, 15);
                     }
                     
                     if (dead) {
@@ -160,6 +173,26 @@
             const boundary = 30;
             if (!dead)
             {
+                for (let i = 0; i < food.x.length; i++) {
+                    if ((food.x[i] - boundary < segments.x[0] && segments.x[0] < food.x[i] + boundary) &&
+                        (food.y[i] - boundary < segments.y[0] && segments.y[0] < food.y[i] + boundary)) {
+                        food.x.splice(i, 1);
+                        food.y.splice(i, 1);
+                        segments.x.push(segments.x[segments.x.length - 1]);
+                        segments.y.push(segments.y[segments.y.length - 1]);
+
+                        fetch("/eat-food", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                foodIdx: i
+                            })
+                        });
+                        break;
+                    }
+                }
                 
                 for (let i = 0; i < otherSegments.x.length; i++) {
                     if (segments.x.length == 0 || ((otherSegments.x[i] - boundary < segments.x[0] && segments.x[0] < otherSegments.x[i] + boundary) &&
