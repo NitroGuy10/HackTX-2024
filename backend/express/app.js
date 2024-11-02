@@ -6,6 +6,8 @@ const app = express();
 app.disable('etag');
 const PORT = 4000;
 
+const canvasSize = 600;
+
 let game = {
   player1: {
     "segments": {
@@ -17,7 +19,7 @@ let game = {
   player2: {
     "segments": {
         "x": [0, 0, 0, 0, 0],
-        "y": [100, 100, 100, 100, 100]
+        "y": [canvasSize, canvasSize, canvasSize, canvasSize, canvasSize]
     }
   },
   
@@ -29,8 +31,8 @@ let game = {
   },
 
   food: {
-    "x": [600, 600, 600, 600, 600],
-    "y": [600, 600, 600, 600, 600]
+    "x": [300, 350, 400, 450, 500],
+    "y": [300, 350, 400, 450, 500]
   }
 }
 
@@ -72,6 +74,7 @@ app.get('/get-segments', (req, res) => {
   const player = req.query.player;
   const returnData = {
     ai: game.ai.segments,
+    food: game.food
   };
 
   if (player === 'player1') {
@@ -82,6 +85,18 @@ app.get('/get-segments', (req, res) => {
 
   // console.log(returnData);
   res.json(returnData);
+});
+
+app.post("/eat-food", (req, res) => {
+  const data = req.body;
+  const foodIdx = data.foodIdx;
+  game.food.x.splice(foodIdx, 1);
+  game.food.y.splice(foodIdx, 1);
+  game.food.x.push(Math.floor(Math.random() * (canvasSize - 40) + 20));
+  game.food.y.push(Math.floor(Math.random() * (canvasSize - 40) + 20));
+
+  console.log("Food eaten");
+  res.send("OK");
 });
 
 app.get("/report-death", (req, res) => {
@@ -98,3 +113,4 @@ let server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
 server.keepAliveTimeout = 30000; 
+server.headersTimeout = 31000;
