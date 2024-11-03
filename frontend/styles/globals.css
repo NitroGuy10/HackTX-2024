@@ -75,6 +75,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "scroll_font";
+  src: local('scroll_font'), url(scroll_font.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* src/components/WeightGrid.css */
 
 .weight-grid-container {
