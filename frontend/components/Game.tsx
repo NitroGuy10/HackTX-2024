@@ -1,6 +1,7 @@
 import { Sketch, SketchProps } from "@p5-wrapper/react";
 import React, { useEffect, useState, useRef } from "react";
 import { NextReactP5Wrapper } from "@p5-wrapper/next";
+import { canvasSize } from "@/pages";
 
 type ComponentProps = {
   canvasSize: number;
@@ -53,7 +54,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
   let setDead = (deadness: boolean) => { };
 
   p5.setup = () => {
-    p5.createCanvas(600, 600, p5.WEBGL);
+    p5.createCanvas(canvasSize, canvasSize, p5.WEBGL);
     p5.frameRate(20);
 
     p5.textFont("Arial");
@@ -92,8 +93,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
 
 
-    if (!dead)
-    {
+    if (!dead) {
 
       let distance = 10;
       if (mouseDown) {
@@ -113,7 +113,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
       if (segments.x.length > 0) {
         // Calculate the direction vector from (x1, y1) to (x2, y2)
         const dx = mousePosition.x - (segments.x[0] || 0);
-        const dy = mousePosition.y - (segments.y[0] || (player === "player1" ? 50 : 450));
+        const dy = mousePosition.y - (segments.y[0] || (player === "player1" ? 50 : 250));
 
         // Calculate the length of the vector (distance between points)
         const length = Math.sqrt(dx * dx + dy * dy);
@@ -130,7 +130,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
         // Scale the direction vector to the desired distance
         const newX = (segments.x[0] || 0) + unitX * distance;
-        const newY = (segments.y[0] || (player === "player1" ? 50 : 450)) + unitY * distance;
+        const newY = (segments.y[0] || (player === "player1" ? 50 : 250)) + unitY * distance;
 
         console.log(dx, dy, length)
 
@@ -229,15 +229,15 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
     ////////////// draw stuff
 
-    p5.background(0);
+    p5.background(0, 0);
     p5.translate(-p5.width / 2, -p5.height / 2);
 
     if (mouseDown) {
       p5.background(20);
     }
 
-    p5.fill(255);
-    p5.circle(mousePosition.x, mousePosition.y, 10);
+    // p5.fill(255);
+    // p5.circle(mousePosition.x, mousePosition.y, 10);
 
     p5.fill(100, 100, 255)
     for (let i = 0; i < segments.x.length; i++) {
@@ -301,10 +301,10 @@ export default function Game(props: ComponentProps) {
   }
 
 
-  return <div onMouseMove={handleMouseMove} ref={gameRef} className="w-fit border 1px solid">
+  return <div onMouseMove={handleMouseMove} ref={gameRef} className="w-fit border border-dashed z-40 -mt-20">
     {/* <p className="text-white">{mousePosition.x}, {mousePosition.y}</p>
     <p className="text-white">{props.mouseDown ? "Mouse Down" : "Mouse Up"}</p> */}
     <NextReactP5Wrapper sketch={sketch} canvasSize={props.canvasSize} player={props.player} playing={props.playing} mousePosition={mousePosition} mouseDown={props.mouseDown} mouseMove={mouseMove} setDead={setDead} />;
-      <p className="text-red-500 font-bold text-2xl">{dead && "Dead!!!!"}</p>
-      </div>;
+    <p className="text-red-500 font-bold text-2xl">{dead && "Dead!!!!"}</p>
+  </div>;
 }

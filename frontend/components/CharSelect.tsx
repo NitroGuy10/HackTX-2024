@@ -24,7 +24,7 @@ const CharSelect: React.FC<CharSelectProps> = ({ onCharacterSelect, showCharSele
   };
 
 return (
-    <div className={` flex flex-col transition-opacity duration-700 ${
+    <div className={` flex flex-col transition-opacity duration-700 z-40 ${
               showCharSelect ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}>
         <div className="flex space-x-4 p-4 justify-center">
