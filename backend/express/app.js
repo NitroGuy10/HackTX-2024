@@ -1,9 +1,11 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+var cors = require('cors')
 
 const app = express();
 app.disable('etag');
+app.use(cors());
 const PORT = 4000;
 
 const canvasSize = 600;
