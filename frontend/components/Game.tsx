@@ -103,13 +103,13 @@ const sketch: Sketch<MySketchProps> = p5 => {
     if (props.setDead) {
       setDead = props.setDead;
     }
-    if (props.bodyImg) {
+    if (props.bodyImg && !bodyImg) {
       bodyImg = p5.loadImage(props.bodyImg);
     }
-    if (props.headImg) {
+    if (props.headImg && !headImg) {
       headImg = p5.loadImage(props.headImg);
     }
-    if (props.sprite) {
+    if (props.sprite && props.sprite !== sprite) {
       sprite = props.sprite;
       headImg = p5.loadImage(characters[sprite].head);
       bodyImg = p5.loadImage(characters[sprite].body);
