@@ -40,11 +40,10 @@ const WeightGrid: React.FC = () => {
   }, []);
 
   return (
-    <div>
-      <div className="grid-container">
+      <div className="grid grid-cols-10 gap-3 py-2">
         {weights.map((weight: number, index: number) => {
           const normalizedWeight = Math.abs(weight) / 1.0; // Assuming INITIAL_WEIGHT_RANGE = 1
-          const size = 20 + normalizedWeight * 30; // Base size + scaled size
+          const size = 10 + normalizedWeight * 30; // Base size + scaled size
           const color = weight > 0 ? '#4caf50' : '#f44336'; // Green for positive, red for negative
 
           return (
@@ -65,10 +64,6 @@ const WeightGrid: React.FC = () => {
           );
         })}
       </div>
-      <button className="update-button " onClick={trainModel}>
-        Run Backward Pass
-      </button>
-    </div>
   );
 };
 

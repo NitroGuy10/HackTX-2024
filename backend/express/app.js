@@ -1,26 +1,30 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+var cors = require('cors')
 
 const app = express();
 app.disable('etag');
+app.use(cors());
 const PORT = 4000;
 
-const canvasSize = 600;
+const canvasSize = 500;
 
 let game = {
   player1: {
     "segments": {
         "x": [0, 0, 0, 0, 0],
         "y": [0, 0, 0, 0, 0]
-    }
+    },
+    "sprite": "Frog"
   },
   
   player2: {
     "segments": {
         "x": [0, 0, 0, 0, 0],
-        "y": [canvasSize, canvasSize, canvasSize, canvasSize, canvasSize]
-    }
+        "y": [canvasSize - 50, canvasSize - 50, canvasSize - 50, canvasSize - 50, canvasSize - 50]
+    },
+    "sprite": "Frog"
   },
   
   ai: {
@@ -31,8 +35,8 @@ let game = {
   },
 
   food: {
-    "x": [300, 350, 400, 450, 500],
-    "y": [300, 350, 400, 450, 500]
+    "x": [300, 350, 400, 450, 250],
+    "y": [300, 350, 400, 450, 250]
   }
 }
 
@@ -60,9 +64,11 @@ app.post('/report-segments', (req, res) => {
   if (data.player === 'player1') {
     game.player1.segments.x = data.x;
     game.player1.segments.y = data.y;
+    game.player1.sprite = data.sprite;
   } else if (data.player === 'player2') {
     game.player2.segments.x = data.x;
     game.player2.segments.y = data.y;
+    game.player2.sprite = data.sprite;
   }
   console.log(game.player1);
 
@@ -79,8 +85,10 @@ app.get('/get-segments', (req, res) => {
 
   if (player === 'player1') {
     returnData.player = game.player2.segments;
+    returnData.otherSprite = game.player2.sprite;
   } else if (player === 'player2') {
     returnData.player = game.player1.segments;
+    returnData.otherSprite = game.player1.sprite;
   }
 
   // console.log(returnData);
@@ -92,8 +100,8 @@ app.post("/eat-food", (req, res) => {
   const foodIdx = data.foodIdx;
   game.food.x.splice(foodIdx, 1);
   game.food.y.splice(foodIdx, 1);
-  game.food.x.push(Math.floor(Math.random() * (canvasSize - 40) + 20));
-  game.food.y.push(Math.floor(Math.random() * (canvasSize - 40) + 20));
+  game.food.x.push(Math.floor(Math.random() * (canvasSize - 80) + 40));
+  game.food.y.push(Math.floor(Math.random() * (canvasSize - 80) + 40));
 
   console.log("Food eaten");
   res.send("OK");
