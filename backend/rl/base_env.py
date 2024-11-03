@@ -24,9 +24,11 @@ class SnekEnv(gym.Env):
         # Define action and observation space
         self.action_space = spaces.Discrete(3)  # 0 = turn left, 1 = turn right, 2 = go straight
         
-        # Observation space includes: agent position, direction, food angle, and food distance
+        # Observation space includes agent position, nearest food coordinates, and x/y distances to food
         self.observation_space = spaces.Dict({
-            "agent_info": spaces.Box(low=0, high=self.canvas_size, shape=(4,), dtype=np.float32)  # x, y, food_angle, food_distance
+            "agent_info": spaces.Box(low=0, high=self.canvas_size, shape=(2,), dtype=np.float32),  # x, y
+            "nearest_food": spaces.Box(low=0, high=self.canvas_size, shape=(2,), dtype=np.float32),  # food_x, food_y
+            "food_distance": spaces.Box(low=-self.canvas_size, high=self.canvas_size, shape=(2,), dtype=np.float32)  # dx, dy
         })
 
         # Initialize player and food
@@ -63,30 +65,21 @@ class SnekEnv(gym.Env):
                      for food in self.food_positions]
         return min(distances, key=lambda x: x[0])[1] if distances else None
 
-    def get_nearest_food_distance(self):
-        nearest_food = self.get_nearest_food()
-        if nearest_food:
-            dx = nearest_food["x"] - self.player["x"]
-            dy = nearest_food["y"] - self.player["y"]
-            return np.sqrt(dx ** 2 + dy ** 2)
-        else:
-            return self.canvas_size
-
     def get_observation(self):
         nearest_food = self.get_nearest_food()
         if nearest_food:
-            dx = nearest_food["x"] - self.player["x"]
-            dy = nearest_food["y"] - self.player["y"]
-            food_angle = np.arctan2(dy, dx) * 180 / np.pi
-            food_distance = np.sqrt(dx ** 2 + dy ** 2)
+            food_x, food_y = nearest_food["x"], nearest_food["y"]
+            dx = food_x - self.player["x"]
+            dy = food_y - self.player["y"]
         else:
-            food_angle, food_distance = 0, self.canvas_size
+            food_x, food_y = 0, 0
+            dx, dy = 0, 0
 
-        agent_info = np.array([
-            self.player["x"], self.player["y"], food_angle, food_distance
-        ], dtype=np.float32)
-        
-        return {"agent_info": agent_info}
+        agent_info = np.array([self.player["x"], self.player["y"]], dtype=np.float32)
+        nearest_food = np.array([food_x, food_y], dtype=np.float32)
+        food_distance = np.array([dx, dy], dtype=np.float32)
+
+        return {"agent_info": agent_info, "nearest_food": nearest_food, "food_distance": food_distance}
 
     def step(self, action):
         self.current_step += 1
@@ -102,17 +95,16 @@ class SnekEnv(gym.Env):
         if self.repeat_count > self.repeat_threshold:
             reward += self.repeat_penalty
 
-        previous_distance = self.get_nearest_food_distance()
+        # Calculate distance to the nearest food before moving
+        previous_distance = self.get_distance_to_nearest_food()
 
         # Actions
         if action == 0:  # Turn left
             self.direction = (self.direction + 90) % 360
-            reward -= 0.1  # Small penalty for turning
         elif action == 1:  # Turn right
             self.direction = (self.direction - 90) % 360
-            reward -= 0.1  # Small penalty for turning
         elif action == 2:  # Go straight
-            reward += 0.2  # Extra reward for moving straight
+            pass
 
         # Update position based on direction
         if self.direction == 0:  # Right
@@ -124,12 +116,14 @@ class SnekEnv(gym.Env):
         elif self.direction == 270:  # Down
             self.player["y"] = min(self.player["y"] + self.speed, self.canvas_size - 1)
 
-        # Check distance to food and encourage moving toward it
-        nearest_food = self.get_nearest_food()
-        if nearest_food:
-            current_distance = np.sqrt((nearest_food["x"] - self.player["x"]) ** 2 + (nearest_food["y"] - self.player["y"]) ** 2)
-            if current_distance < previous_distance:
-                reward += 0.3  # Reward for moving closer to food
+        # Calculate distance to the nearest food after moving
+        current_distance = self.get_distance_to_nearest_food()
+
+        # Drastically reduced reward for getting closer to the nearest food
+        if current_distance < previous_distance:
+            reward += 0.1  # Small positive reward for moving closer to food
+        elif current_distance > previous_distance:
+            reward -= 0.2  # Small penalty for moving away from the food
 
         # Check if the agent picks up food
         for i, food in enumerate(self.food_positions):
@@ -141,14 +135,6 @@ class SnekEnv(gym.Env):
                 }
                 self.food_picked_up += 1
 
-        # Check if agent is aligned with food direction and reward staying on course
-        if nearest_food:
-            dx = nearest_food["x"] - self.player["x"]
-            dy = nearest_food["y"] - self.player["y"]
-            food_angle = np.arctan2(dy, dx) * 180 / np.pi
-            if abs(food_angle - self.direction) < 15:
-                reward += 0.1  # Reward for maintaining alignment with food
-
         # End condition if agent hits wall
         done = (
             self.player["x"] <= 0 or self.player["x"] >= self.canvas_size - 1 or
@@ -157,8 +143,20 @@ class SnekEnv(gym.Env):
         if done:
             reward = -50
 
+        # Check if the maximum step count has been reached
         truncated = self.current_step >= 1000
         return self.get_observation(), reward, done, truncated, {}
+
+
+
+    def get_distance_to_nearest_food(self):
+        nearest_food = self.get_nearest_food()
+        if nearest_food:
+            dx = nearest_food["x"] - self.player["x"]
+            dy = nearest_food["y"] - self.player["y"]
+            return np.sqrt(dx ** 2 + dy ** 2)
+        else:
+            return float('inf')  # Return a very large distance if no food is found
 
     def render(self, mode="human"):
         if mode == "human":

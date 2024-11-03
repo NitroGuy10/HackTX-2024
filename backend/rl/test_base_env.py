@@ -22,20 +22,21 @@ model = PPO(
     env=vec_env,
     verbose=0,
     tensorboard_log="./huh/",
-    learning_rate=1e-4, 
-    n_steps=2048,  # Number of steps per update (larger values for PPO)
-    batch_size=64,  # PPO typically uses a larger batch size
-    gamma=0.99, 
-    gae_lambda=0.95,  # GAE parameter (specific to PPO/A2C)
-    clip_range=0.2,   # PPO-specific clipping range
-    ent_coef=0.01,    # Entropy coefficient for exploration
-    vf_coef=0.5,      # Value function coefficient
+    learning_rate=1e-4,     # Slightly increased learning rate for faster learning
+    n_steps=512,             # Reduce for more frequent updates
+    batch_size=128,            # Remain at 64; try 128 if performance allows
+    gamma=0.98,               # Lower gamma for shorter-term reward focus
+    gae_lambda=0.95,
+    clip_range=0.2,
+    ent_coef=0.01,            # Slightly higher entropy for more exploration
+    vf_coef=0.5,
     max_grad_norm=0.5,
     device='cuda'
 )
 
+
 # Train the model
-model.learn(total_timesteps=500000, log_interval=10, progress_bar=True)
+model.learn(total_timesteps=100000, progress_bar=True)
 
 # Save the model
 model.save("ppo_snek")
@@ -74,6 +75,7 @@ for episode in range(1, num_episodes + 1):
 
         action, _states = model.predict(obs, deterministic=False)
         obs, reward, done, info = vec_env.step(action)
+        # print(obs)
         episode_reward += reward
         steps += 1
 
