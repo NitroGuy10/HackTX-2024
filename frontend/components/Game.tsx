@@ -275,9 +275,9 @@ const sketch: Sketch<MySketchProps> = p5 => {
     p5.background(0, 0);
     p5.translate(-p5.width / 2, -p5.height / 2);
 
-    if (mouseDown) {
-      p5.background(20);
-    }
+    // if (mouseDown) {
+    //   p5.background(20);
+    // }
 
     // p5.fill(255);
     // p5.circle(mousePosition.x, mousePosition.y, 10);
