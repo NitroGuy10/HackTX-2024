@@ -63,10 +63,20 @@ export default function Component() {
               {playing && <Game canvasSize={canvasSize} player={player} playing={playing} mouseDown={isMouseDown} sprite={selectedCharacter || ""} />}
 
               {/* <h2 className="text-3xl font-semibold text-white">Game Content</h2> */}
-              <p className="z-40 mt-4 text-lg text-white">
-                <button onClick={() => { setPlayer("player1"); setPlaying(true) }}>Player 1</button>
-                <button onClick={() => { setPlayer("player2"); setPlaying(true) }}>Player 2</button>
-                {playing && <span>Playing as {player}</span>}
+              <p className="z-40 mt-32 px-6 py-3 text-lg font-medium text-white rounded-none font-custom transition-opacity duration-700">
+                <button
+                  onClick={() => { setPlayer("player1"); setPlaying(true); }}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-700 rounded transition duration-300"
+                >
+                  Player 1
+                </button>
+                <button
+                  onClick={() => { setPlayer("player2"); setPlaying(true); }}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-700 rounded transition duration-300 ml-4"
+                >
+                  Player 2
+                </button>
+  
               </p>
             </div>}
 
@@ -122,7 +132,7 @@ export default function Component() {
           <div className={`flex flex-col items-center space-y-4 text-center absolute inset-0 transition-opacity duration-700 ${showGame || showCharSelect ? "opacity-100 z-10" : "opacity-0 pointer-events-none"
               }`}>
               <Image
-                src="/assets/arcade_frame.png"
+                src="/assets/arcade_frame.svg"
                 alt="frame"
                 className={`w-full h-screen -z-10`}
                 priority
