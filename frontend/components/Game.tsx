@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { NextReactP5Wrapper } from "@p5-wrapper/next";
 import { canvasSize } from "@/pages";
 import { backendUrl } from "@/pages";
+import { AnimatePresence, motion } from "framer-motion";
 
 type ComponentProps = {
   canvasSize: number;
@@ -360,7 +361,22 @@ export default function Game(props: ComponentProps) {
   return <div onMouseMove={handleMouseMove} ref={gameRef} className="w-fit border border-dashed z-40 -mt-20">
     {/* <p className="text-white">{mousePosition.x}, {mousePosition.y}</p>
     <p className="text-white">{props.mouseDown ? "Mouse Down" : "Mouse Up"}</p> */}
+    <AnimatePresence>
+      {dead && <motion.div
+        initial={{ scale: 0, rotate: 360 }}
+        animate={{ rotate: 0, scale: 1 }}
+        exit={{ scale: 0, rotate: -180 }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20
+        }}
+        className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center"
+      >
+        <p className="text-red-500 font-bold text-8xl">You died!</p>
+      </motion.div>}
+    </AnimatePresence>
+
     <NextReactP5Wrapper sketch={sketch} canvasSize={props.canvasSize} player={props.player} playing={props.playing} mousePosition={mousePosition} mouseDown={props.mouseDown} mouseMove={mouseMove} setDead={setDead} headImg={props.headImg} bodyImg={props.bodyImg} sprite={props.sprite} />;
-    <p className="text-red-500 font-bold text-2xl">{dead && "Dead!!!!"}</p>
   </div>;
 }
