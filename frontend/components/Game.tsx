@@ -4,6 +4,7 @@ import { NextReactP5Wrapper } from "@p5-wrapper/next";
 import { canvasSize } from "@/pages";
 import { backendUrl } from "@/pages";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 
 type ComponentProps = {
   canvasSize: number;
@@ -50,6 +51,7 @@ type MySketchProps = SketchProps & ComponentProps & {
   mouseMove: boolean;
   dead: boolean;
   setDead: (deadness: boolean) => void;
+  setJoyStickDirection: (direction: string) => void;
 };
 
 const sketch: Sketch<MySketchProps> = p5 => {
@@ -77,6 +79,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
   let otherSprite = "";
   let otherHead: p5.Image;
   let otherBody: p5.Image;
+  let setJoystickDirection = (direction: string) => { };
 
   p5.setup = () => {
     p5.createCanvas(canvasSize, canvasSize, p5.WEBGL);
@@ -114,6 +117,9 @@ const sketch: Sketch<MySketchProps> = p5 => {
       sprite = props.sprite;
       headImg = p5.loadImage(characters[sprite].head);
       bodyImg = p5.loadImage(characters[sprite].body);
+    }
+    if (props.setJoystickDirection) {
+      setJoystickDirection = props.setJoystickDirection;
     }
   };
 
@@ -157,6 +163,16 @@ const sketch: Sketch<MySketchProps> = p5 => {
         // Calculate the direction vector from (x1, y1) to (x2, y2)
         const dx = mousePosition.x - (segments.x[0] || 0);
         const dy = mousePosition.y - (segments.y[0] || (player === "player1" ? 50 : 250));
+
+        if (dx > 20) {
+          setJoystickDirection("right");
+        }
+        else if (dx < -20) {
+          setJoystickDirection("left");
+        }
+        else {
+          setJoystickDirection("center");
+        }
 
         // Calculate the length of the vector (distance between points)
         const length = Math.sqrt(dx * dx + dy * dy);
@@ -329,6 +345,7 @@ export default function Game(props: ComponentProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 } as Coord);
   const [componentPosition, setComponentPosition] = useState({ x: 0, y: 0 } as Coord);
   const gameRef = useRef<HTMLDivElement>(null);
+  const [joystickDirection, setJoystickDirection] = useState("center");
 
 
   useEffect(() => {
@@ -373,10 +390,13 @@ export default function Game(props: ComponentProps) {
         }}
         className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center"
       >
-        <p className="text-red-500 font-bold text-8xl">You died!</p>
+        <p className="text-red-400 font-bold font-custom text-5xl">You died!</p>
       </motion.div>}
     </AnimatePresence>
 
-    <NextReactP5Wrapper sketch={sketch} canvasSize={props.canvasSize} player={props.player} playing={props.playing} mousePosition={mousePosition} mouseDown={props.mouseDown} mouseMove={mouseMove} setDead={setDead} headImg={props.headImg} bodyImg={props.bodyImg} sprite={props.sprite} />;
+    <Image src={"/assets/joystick_" + joystickDirection + ".png"} alt="joystick" width={200} height={200} className="absolute top-[600px] left-[1100px] " />
+    <Image src={"/assets/pinkbutton" + (props.mouseDown ? "_down" : "") + ".png"} alt="button" width={130} height={130} className="absolute top-[670px] left-[300px] " />
+    
+    <NextReactP5Wrapper sketch={sketch} canvasSize={props.canvasSize} player={props.player} playing={props.playing} mousePosition={mousePosition} mouseDown={props.mouseDown} mouseMove={mouseMove} setDead={setDead} headImg={props.headImg} bodyImg={props.bodyImg} sprite={props.sprite} setJoystickDirection={setJoystickDirection} />;
   </div>;
 }
