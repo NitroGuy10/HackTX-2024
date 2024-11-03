@@ -455,7 +455,7 @@ export default function Game(props: ComponentProps) {
   }
 
 
-  return <div onMouseMove={handleMouseMove} ref={gameRef} className="w-fit border border-dashed z-40 -mt-20">
+  return <div onMouseMove={handleMouseMove} ref={gameRef} className="w-fit z-40 -mt-20">
     {/* <p className="text-white">{mousePosition.x}, {mousePosition.y}</p>
     <p className="text-white">{props.mouseDown ? "Mouse Down" : "Mouse Up"}</p> */}
     <AnimatePresence>

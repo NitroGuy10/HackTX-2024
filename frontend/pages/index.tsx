@@ -132,7 +132,7 @@ export default function Component() {
           <div className={`flex flex-col items-center space-y-4 text-center absolute inset-0 transition-opacity duration-700 ${showGame || showCharSelect ? "opacity-100 z-10" : "opacity-0 pointer-events-none"
               }`}>
               <Image
-                src="/assets/arcade_frame.svg"
+                src="/assets/arcade_frame.png"
                 alt="frame"
                 className={`w-full h-screen -z-10`}
                 priority
