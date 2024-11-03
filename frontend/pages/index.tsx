@@ -10,6 +10,8 @@ import Game from "@/components/Game";
 
 
 export const canvasSize = 500;
+// export const backendUrl = "http://recoil-game.ngrok.app";
+export const backendUrl = "http://localhost:4000";  
 
 import CharSelect from "@/components/CharSelect";
 import GameContainer from "@/components/GameContainer";

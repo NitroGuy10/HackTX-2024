@@ -2,6 +2,7 @@ import { Sketch, SketchProps } from "@p5-wrapper/react";
 import React, { useEffect, useState, useRef } from "react";
 import { NextReactP5Wrapper } from "@p5-wrapper/next";
 import { canvasSize } from "@/pages";
+import { backendUrl } from "@/pages";
 
 type ComponentProps = {
   canvasSize: number;
@@ -117,7 +118,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
   p5.draw = () => {
     // fetch updates
-    fetch("http://localhost:4000/get-segments?player=" + player)
+    fetch(backendUrl + "/get-segments?player=" + player)
       .then(response => response.json())
       .then(data => {
         otherSegments.x = data.player.x;
@@ -189,7 +190,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
     //console.log(segments.x[0], segments.y[0]);
 
-    fetch("http://localhost:4000/report-segments", {
+    fetch(backendUrl + "/report-segments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -215,7 +216,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
             segments.y.push(segments.y[segments.y.length - 1]);
 
             eatCooldown = 4;
-            fetch("http://localhost:4000/eat-food", {
+            fetch(backendUrl + "/eat-food", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
@@ -237,14 +238,14 @@ const sketch: Sketch<MySketchProps> = p5 => {
           dead = true;
           setDead(true);
           console.log("You died!");
-          fetch("http://localhost:4000/report-death?player=" + player);
+          fetch(backendUrl + "/report-death?player=" + player);
 
           // Reset player
           const initialX = Math.round(Math.random() * p5.width - 100) + 50;
           const initialY = Math.round(Math.random() * p5.height - 100) + 50;
           segments.x = [initialX, initialX, initialX, initialX, initialX];
           segments.y = [initialY, initialY, initialY, initialY, initialY];
-          fetch("http://localhost:4000/report-segments", {
+          fetch(backendUrl + "/report-segments", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
