@@ -8,6 +8,9 @@ type ComponentProps = {
   player: string;
   playing: boolean;
   mouseDown: boolean;
+  headImg: string;
+  bodyImg: string;
+  sprite: string;
 };
 
 type CoordLists = {
@@ -20,14 +23,27 @@ type Coord = {
   y: number
 }
 
-
+const characters = {
+  "Frog": {
+    head: "/assets/FROG/recoil_froghead.png",
+    body: "/assets/FROG/recoil_frogbody.png",
+  },
+  "Bird": {
+    head: "/assets/BIRD/recoil_birdhead.png",
+    body: "/assets/BIRD/recoil_birdbod.png",
+  },
+  "Fox": {
+    head: "/assets/FOX/recoil_foxhead.png",
+    body: "/assets/FOX/recoil_foxbody.png",
+  },
+  "": {
+    head: "",
+    body: "",
+  }
+};
 
 
 type MySketchProps = SketchProps & ComponentProps & {
-  segments: CoordLists;
-  otherSegments: CoordLists;
-  aiSegments: CoordLists;
-  food: CoordLists;
   mousePosition: Coord;
   mouseMove: boolean;
   dead: boolean;
@@ -52,12 +68,22 @@ const sketch: Sketch<MySketchProps> = p5 => {
   let eatCooldown = 0;
   let speedupCounter = 0;
   let setDead = (deadness: boolean) => { };
+  let headImg: p5.Image;
+  let bodyImg: p5.Image;
+  let foodImg: p5.Image;
+  let sprite = "";
+  let otherSprite = "";
+  let otherHead: p5.Image;
+  let otherBody: p5.Image;
 
   p5.setup = () => {
     p5.createCanvas(canvasSize, canvasSize, p5.WEBGL);
     p5.frameRate(20);
 
     p5.textFont("Arial");
+    p5.imageMode(p5.CENTER);
+
+    foodImg = p5.loadImage("/assets/heart_sparkle.gif");
   };
 
   p5.updateWithProps = props => {
@@ -76,6 +102,17 @@ const sketch: Sketch<MySketchProps> = p5 => {
     if (props.setDead) {
       setDead = props.setDead;
     }
+    if (props.bodyImg) {
+      bodyImg = p5.loadImage(props.bodyImg);
+    }
+    if (props.headImg) {
+      headImg = p5.loadImage(props.headImg);
+    }
+    if (props.sprite) {
+      sprite = props.sprite;
+      headImg = p5.loadImage(characters[sprite].head);
+      bodyImg = p5.loadImage(characters[sprite].body);
+    }
   };
 
   p5.draw = () => {
@@ -89,6 +126,10 @@ const sketch: Sketch<MySketchProps> = p5 => {
         aiSegments.y = data.ai.y;
         food.x = data.food.x;
         food.y = data.food.y;
+
+        otherSprite = data.otherSprite;
+        otherHead = p5.loadImage(characters[otherSprite].head);
+        otherBody = p5.loadImage(characters[otherSprite].body);
       });
 
 
@@ -102,7 +143,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
       }
       eatCooldown = Math.max(0, eatCooldown - 1);
 
-      if (speedupCounter > 8) {
+      if (speedupCounter > 3) {
         speedupCounter = 0;
         segments.x.pop();
         segments.y.pop();
@@ -155,6 +196,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
       },
       body: JSON.stringify({
         player: player,
+        sprite: sprite,
         x: segments.x,
         y: segments.y
       })
@@ -172,7 +214,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
             segments.x.push(segments.x[segments.x.length - 1]);
             segments.y.push(segments.y[segments.y.length - 1]);
 
-            eatCooldown = 10;
+            eatCooldown = 4;
             fetch("http://localhost:4000/eat-food", {
               method: "POST",
               headers: {
@@ -209,6 +251,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
             },
             body: JSON.stringify({
               player: player,
+              sprite: sprite,
               x: segments.x,
               y: segments.y
             })
@@ -240,20 +283,32 @@ const sketch: Sketch<MySketchProps> = p5 => {
     // p5.circle(mousePosition.x, mousePosition.y, 10);
 
     p5.fill(100, 100, 255)
-    for (let i = 0; i < segments.x.length; i++) {
-      p5.circle(segments.x[i], segments.y[i], 10);
+    for (let i = 1; i < segments.x.length; i++) {
+      // p5.circle(segments.x[i], segments.y[i], 10);
+      p5.image(bodyImg, segments.x[i], segments.y[i], 20, 20);
     }
-    p5.fill(255, 100, 100)
-    for (let i = 0; i < otherSegments.x.length; i++) {
-      p5.circle(otherSegments.x[i], otherSegments.y[i], 10);
+    if (segments.x.length > 0) {
+      p5.image(headImg, segments.x[0], segments.y[0], 30, 30);
     }
+
+    if (otherBody && otherHead) {
+      for (let i = 1; i < otherSegments.x.length; i++) {
+        // p5.circle(segments.x[i], segments.y[i], 10);
+        p5.image(otherBody, otherSegments.x[i], otherSegments.y[i], 20, 20);
+      }
+      if (otherSegments.x.length > 0) {
+        p5.image(otherHead, otherSegments.x[0], otherSegments.y[0], 30, 30);
+      }
+    }
+
     p5.fill(100, 255, 100)
     for (let i = 0; i < aiSegments.x.length; i++) {
 
     }
     p5.fill(255, 255, 100)
     for (let i = 0; i < food.x.length; i++) {
-      p5.circle(food.x[i], food.y[i], 10);
+      // p5.circle(food.x[i], food.y[i], 10);
+      p5.image(foodImg, food.x[i], food.y[i], 50, 50);
     }
 
     // if (dead) {
@@ -304,7 +359,7 @@ export default function Game(props: ComponentProps) {
   return <div onMouseMove={handleMouseMove} ref={gameRef} className="w-fit border border-dashed z-40 -mt-20">
     {/* <p className="text-white">{mousePosition.x}, {mousePosition.y}</p>
     <p className="text-white">{props.mouseDown ? "Mouse Down" : "Mouse Up"}</p> */}
-    <NextReactP5Wrapper sketch={sketch} canvasSize={props.canvasSize} player={props.player} playing={props.playing} mousePosition={mousePosition} mouseDown={props.mouseDown} mouseMove={mouseMove} setDead={setDead} />;
+    <NextReactP5Wrapper sketch={sketch} canvasSize={props.canvasSize} player={props.player} playing={props.playing} mousePosition={mousePosition} mouseDown={props.mouseDown} mouseMove={mouseMove} setDead={setDead} headImg={props.headImg} bodyImg={props.bodyImg} sprite={props.sprite} />;
     <p className="text-red-500 font-bold text-2xl">{dead && "Dead!!!!"}</p>
   </div>;
 }

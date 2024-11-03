@@ -14,6 +14,8 @@ export const canvasSize = 500;
 import CharSelect from "@/components/CharSelect";
 import GameContainer from "@/components/GameContainer";
 
+
+
 export default function Component() {
   const [showHome, setShowHome] = useState(true);
   const [showCharSelect, setShowCharSelect] = useState(false);
@@ -56,7 +58,7 @@ export default function Component() {
         <section className="w-full h-screen py-12 md:py-24 lg:py-32 xl:py-48 bg-black" onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
           {showGame &&
             <div className={`z-40 flex flex-col items-center space-y-4 text-center transition-opacity duration-700 ${showGame ? "opacity-100" : "opacity-0"}`}>
-              {playing && <Game canvasSize={canvasSize} player={player} playing={playing} mouseDown={isMouseDown} />}
+              {playing && <Game canvasSize={canvasSize} player={player} playing={playing} mouseDown={isMouseDown} sprite={selectedCharacter || ""} />}
 
               {/* <h2 className="text-3xl font-semibold text-white">Game Content</h2> */}
               <p className="z-40 mt-4 text-lg text-white">
