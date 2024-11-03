@@ -60,7 +60,7 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
   const segments: CoordLists = { x: [firstX, firstX, firstX, firstX, firstX], y: [firstY, firstY, firstY, firstY, firstY] };
   const otherSegments: CoordLists = { x: [0, 0, 0, 0, 0], y: [0, 0, 0, 0, 0] };
-  const aiSegments: CoordLists = { x: [0, 0, 0, 0, 0], y: [0, 0, 0, 0, 0] };
+  const aiSegments: CoordLists = { x: [0, 0, 0, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0], y: [0, 0, 0, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0] };
   const food: CoordLists = { x: [], y: [] };
   let mousePosition: Coord = { x: 0, y: 0 };
   let mouseDown = false;
@@ -80,6 +80,9 @@ const sketch: Sketch<MySketchProps> = p5 => {
   let otherHead: p5.Image;
   let otherBody: p5.Image;
   let setJoystickDirection = (direction: string) => { };
+  let aiDirection = 2;
+  let aiAngle = 0;
+  let aiDead = false;
 
   p5.setup = () => {
     p5.createCanvas(canvasSize, canvasSize, p5.WEBGL);
@@ -130,8 +133,13 @@ const sketch: Sketch<MySketchProps> = p5 => {
       .then(data => {
         otherSegments.x = data.player.x;
         otherSegments.y = data.player.y;
-        aiSegments.x = data.ai.x;
-        aiSegments.y = data.ai.y;
+        if (player === "player2") {
+          aiSegments.x = data.ai.x;
+          aiSegments.y = data.ai.y;
+        }
+        aiDirection = data.ai_direction;
+        console.log(aiDirection);
+
         food.x = data.food.x;
         food.y = data.food.y;
 
@@ -191,13 +199,46 @@ const sketch: Sketch<MySketchProps> = p5 => {
         const newX = (segments.x[0] || 0) + unitX * distance;
         const newY = (segments.y[0] || (player === "player1" ? 50 : 250)) + unitY * distance;
 
-        console.log(dx, dy, length)
+        // console.log(dx, dy, length)
 
         segments.x.unshift(newX);
         segments.x.pop();
         segments.y.unshift(newY);
         segments.y.pop();
-        console.log(segments.x, segments.y);
+        // console.log(segments.x, segments.y);
+      }
+
+
+      if (aiSegments.x.length > 0) {
+        // Rotate the dirction vector by 10 degrees
+        // 0: counter-clockwise, 1: clockwise, 2: no rotation
+        if (aiDirection == 0) {
+          aiAngle -= 90;
+        }
+        else if (aiDirection == 1) {
+          aiAngle += 90;
+        }
+
+        const dx = Math.cos(aiAngle * Math.PI / 180);
+        const dy = Math.sin(aiAngle * Math.PI / 180);
+
+        // Calculate the length of the vector (distance between points)
+        const length = Math.sqrt(dx * dx + dy * dy);
+
+        // Normalize the direction vector to have a length of 1
+        let unitX = dx / length;
+        let unitY = dy / length;
+
+
+        // Scale the direction vector to the desired distance
+        const newX = (aiSegments.x[0] || 0) + unitX * distance;
+        const newY = (aiSegments.y[0] || (player === "player1" ? 50 : 250)) + unitY * distance;
+
+        aiSegments.x.unshift(newX);
+        aiSegments.x.pop();
+        aiSegments.y.unshift(newY);
+        aiSegments.y.pop();
+        console.log(aiSegments.x, aiSegments.y);
       }
     }
 
@@ -226,7 +267,10 @@ const sketch: Sketch<MySketchProps> = p5 => {
       if (eatCooldown == 0) {
         for (let i = 0; i < food.x.length; i++) {
           if ((food.x[i] - boundary < segments.x[0] && segments.x[0] < food.x[i] + boundary) &&
-            (food.y[i] - boundary < segments.y[0] && segments.y[0] < food.y[i] + boundary)) {
+            (food.y[i] - boundary < segments.y[0] && segments.y[0] < food.y[i] + boundary) ||
+            (food.x[i] - boundary < aiSegments.x[0] && aiSegments.x[0] < food.x[i] + boundary) &&
+            (food.y[i] - boundary < aiSegments.y[0] && aiSegments.y[0] < food.y[i] + boundary)
+          ) {
             food.x.splice(i, 1);
             food.y.splice(i, 1);
             segments.x.push(segments.x[segments.x.length - 1]);
@@ -251,6 +295,8 @@ const sketch: Sketch<MySketchProps> = p5 => {
       for (let i = 0; i < otherSegments.x.length; i++) {
         if (segments.x.length == 0 || ((otherSegments.x[i] - boundary < segments.x[0] && segments.x[0] < otherSegments.x[i] + boundary) &&
           (otherSegments.y[i] - boundary < segments.y[0] && segments.y[0] < otherSegments.y[i] + boundary))
+          || ((aiSegments.x[i] - boundary < segments.x[0] && segments.x[0] < aiSegments.x[i] + boundary) &&
+            (aiSegments.y[i] - boundary < segments.y[0] && segments.y[0] < aiSegments.y[i] + boundary))
           || segments.x[0] < 0 || segments.x[0] > p5.width || segments.y[0] < 0 || segments.y[0] > p5.height) {
           dead = true;
           setDead(true);
@@ -280,6 +326,39 @@ const sketch: Sketch<MySketchProps> = p5 => {
           }, 3000);
           break;
         }
+      }
+    }
+
+    // check if AI is dead
+    for (let i = 0; i < aiSegments.x.length; i++) {
+      if (segments.x.length == 0 || ((aiSegments.x[i] - boundary < segments.x[0] && segments.x[0] < aiSegments.x[i] + boundary) &&
+        (aiSegments.y[i] - boundary < segments.y[0] && segments.y[0] < aiSegments.y[i] + boundary))
+        || aiSegments.x[0] < 0 || aiSegments.x[0] > p5.width || aiSegments.y[0] < 0 || aiSegments.y[0] > p5.height) {
+        aiDead = true;
+        console.log("You died!");
+        fetch(backendUrl + "/report-death?player=ai");
+
+        // Reset player
+        const initialX = Math.round(Math.random() * p5.width - 100) + 50;
+        const initialY = Math.round(Math.random() * p5.height - 100) + 50;
+        aiSegments.x = [initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX, initialX];
+        aiSegments.y = [initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY, initialY];
+        fetch(backendUrl + "/report-segments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            player: "ai",
+            sprite: sprite,
+            x: aiSegments.x,
+            y: aiSegments.y
+          })
+        });
+        setTimeout(function () {
+          aiDead = false;
+        }, 3000);
+        break;
       }
     }
 
@@ -321,8 +400,9 @@ const sketch: Sketch<MySketchProps> = p5 => {
 
     p5.fill(100, 255, 100)
     for (let i = 0; i < aiSegments.x.length; i++) {
-
+      p5.image(bodyImg, aiSegments.x[i], aiSegments.y[i], 20, 20);
     }
+
     p5.fill(255, 255, 100)
     for (let i = 0; i < food.x.length; i++) {
       // p5.circle(food.x[i], food.y[i], 10);

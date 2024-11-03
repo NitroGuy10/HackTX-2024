@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import random
+import snake as snake
+import numpy as np
 
 # -----------------------------
 # Configuration Parameters
@@ -84,6 +86,20 @@ def train_model():
 @app.route('/')
 def index():
     return "Neural Network Weights Visualization API"
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.json
+    obs = {
+    "agent_info": np.array([data["player_x"], data["player_x"]]),
+    "nearest_food": np.array([data["nf_x"], data["nf_y"]]),
+    "food_distance": np.array([data["nf_x"] - data["player_x"], data["nf_y"] - data["player_y"]]),
+    }
+    action = int(snake.predict(obs))
+    print(action)
+    return {"action": action}
+
+
 
 # -----------------------------
 # Run the Flask App

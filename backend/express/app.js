@@ -29,9 +29,10 @@ let game = {
   
   ai: {
     "segments": {
-        "x": [0, 0, 0, 0, 0],
+        "x": [canvasSize - 50, canvasSize - 50, canvasSize - 50, canvasSize - 50, canvasSize - 50],
         "y": [0, 0, 0, 0, 0]
-    }
+    },
+    "direction": 2,
   },
 
   food: {
@@ -70,7 +71,32 @@ app.post('/report-segments', (req, res) => {
     game.player2.segments.y = data.y;
     game.player2.sprite = data.sprite;
   }
+  else if (data.player === 'ai') {
+    game.ai.segments.x = data.x;
+    game.ai.segments.y = data.y;
+  }
   console.log(game.player1);
+
+  fetch("http://localhost:5000/predict", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      player_x: game.player1.segments.x[0],
+      player_y: game.player1.segments.y[0],
+      nf_x: game.food.x[0],
+      nf_y: game.food.y[0],
+    }),
+  }).then((response) => {
+    return response.json();
+  }
+  ).then((data) => {
+    game.ai.direction = data.action;
+  }
+  ).catch((error) => {
+    console.error("Error:", error);
+  });
 
   res.send('OK');
 });
@@ -86,6 +112,8 @@ app.get('/get-segments', (req, res) => {
   if (player === 'player1') {
     returnData.player = game.player2.segments;
     returnData.otherSprite = game.player2.sprite;
+
+    returnData.ai_direction = game.ai.direction;
   } else if (player === 'player2') {
     returnData.player = game.player1.segments;
     returnData.otherSprite = game.player1.sprite;
@@ -115,6 +143,31 @@ app.get("/report-death", (req, res) => {
 
 app.get('/', (req, res) => {
   res.send('<p>Hello, World!</p>');
+});
+
+// Route that proxies requests to localhost:5000
+app.use("/flask/*", async (req, res) => {
+  try {
+    // Build the URL based on the incoming request path and query
+    const url = `http://localhost:5000${req.originalUrl.replace("/flask", "")}`;
+
+    // Forward the request to the backend with the same method and body
+    const response = await fetch(url, {
+      method: req.method,
+      headers: {
+        ...req.headers,
+        host: "localhost:5000", // Override host header for local backend
+      },
+      body: ["POST", "PUT", "PATCH"].includes(req.method) ? req.body : undefined,
+    });
+
+    // Get response data and headers
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    console.error("Error proxying request:", error);
+    res.status(500).json({ error: "Failed to fetch from backend" });
+  }
 });
 
 let server = app.listen(PORT, '0.0.0.0', () => {

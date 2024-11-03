@@ -2,7 +2,6 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import random
-import pygame
 
 class SnekEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
@@ -38,9 +37,9 @@ class SnekEnv(gym.Env):
         self.speed = 5
         self.reset()
 
-        pygame.init()
-        self.screen = pygame.display.set_mode((self.canvas_size, self.canvas_size))
-        pygame.display.set_caption("Snek Environment")
+        # pygame.init()
+        # self.screen = pygame.display.set_mode((self.canvas_size, self.canvas_size))
+        # pygame.display.set_caption("Snek Environment")
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -158,18 +157,18 @@ class SnekEnv(gym.Env):
         else:
             return float('inf')  # Return a very large distance if no food is found
 
-    def render(self, mode="human"):
-        if mode == "human":
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
+    # def render(self, mode="human"):
+    #     if mode == "human":
+    #         for event in pygame.event.get():
+    #             if event.type == pygame.QUIT:
+    #                 pygame.quit()
+    #                 quit()
 
-            self.screen.fill((0, 0, 0))
-            for food in self.food_positions:
-                pygame.draw.rect(self.screen, (0, 255, 0), pygame.Rect(food["x"] - 5, food["y"] - 5, 10, 10))
-            pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(self.player["x"] - 5, self.player["y"] - 5, 10, 10))
-            pygame.display.flip()
+    #         self.screen.fill((0, 0, 0))
+    #         for food in self.food_positions:
+    #             pygame.draw.rect(self.screen, (0, 255, 0), pygame.Rect(food["x"] - 5, food["y"] - 5, 10, 10))
+    #         pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(self.player["x"] - 5, self.player["y"] - 5, 10, 10))
+    #         pygame.display.flip()
 
-    def close(self):
-        pygame.quit()
+    # def close(self):
+    #     pygame.quit()
