@@ -18,7 +18,7 @@ module.exports = {
   	extend: {
   		fontFamily: {
   			custom: ['arcade_font', 'Arial'],
-  			minimal: ['sans-serif']
+  			scroll: ['scroll_font', 'Arial']
   		},
   		colors: {
   			border: 'hsl(var(--border))',
